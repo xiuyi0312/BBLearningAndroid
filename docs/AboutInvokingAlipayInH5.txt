@@ -1,0 +1,31 @@
+It's common that we need to invoke the Alipay app to pay something in our projects.
+But it's really funny that there are so many blogs just copying from each other implementing the
+'shouldOverrideUrlLoading' callback like below.
+#=============== INCORRECT WAY =================
+if (url.contains("platformapi")) {
+    if (webViewCallBack != null) {
+        webViewCallBack.onStartAlipay(url);
+    }
+    return true;
+}
+...
+return false;
+
+After testing this code, we obviously know before starting to the alipay app, a default browser is invoked and loading
+the download page of alipay. THIS IS NOT CORRECT
+The reason is that before loading the specific alipay scheme, i.e. "alipays://", our webview will load other urls for
+several times(there the number is 3), and one of them contains the 'platformapi', and when asking the system to help us
+find a proper app to handle this intent, of course it will find the default browser, and then everything afterwards is
+handled by the default browser, including invoking the alipay app. So the correct way is like below.
+#=============== CORRECT WAY =================
+if (url.startsWith("alipays://")) {
+    if (webViewCallBack != null) {
+        webViewCallBack.onStartAlipay(url);
+    }
+    return true;
+}
+...
+return false;
+In this way, when receiving other urls our webview just load them and will not invoke other browser, and when it receives
+the urls starts withs 'alipays://', it's our time to ask the system to help us find the proper app to handle this intent,
+and this time only THE ALIPAY will handle it.
